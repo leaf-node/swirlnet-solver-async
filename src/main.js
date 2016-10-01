@@ -13,6 +13,8 @@
 // limitations under the License.
 
 
+/*global Promise */
+
 var swirlnet, swirlnetSolver;
 
 swirlnet = require('swirlnet');
