@@ -1,0 +1,16 @@
+{
+  "name": "swirlnet-solver-async",
+  "version": "0.0.0",
+  "description": "A basic framework for evolving networks with swirlnet",
+  "main": "src/main.js",
+  "files": [
+      "src",
+      "README.md",
+      "LICENSE"
+    ],
+  "dependencies": {
+      "swirlnet": "<=1.x"
+  },
+  "author": "Andrew Engelbrecht",
+  "license": "Apache-2.0"
+}
