@@ -18,18 +18,34 @@
 var swirlnet, swirlnetSolver;
 
 swirlnet = require('swirlnet');
+util = require('./util.js');
 
 // search for network solution using user supplied Promise based test callback
-swirlnetSolver = function (inputCount, outputCount, testFunction, maxSimulationDuration, genomeSettings, fitnessTarget, maxGenerations, doNoveltySearch) {
+swirlnetSolver = function (options) {
 
     "use strict";
 
     var mainLoop, population, archive, generationNumber,
         bestFitnessThisGeneration, bestPhenotypeThisGeneration;
 
-    population = swirlnet.makePopulation(inputCount, outputCount, genomeSettings);
+    console.assert(typeof options === "object", "swirlnet-solver-async: error: options must be an object");
 
-    if (doNoveltySearch === true) {
+    console.assert(util.isInt(options.inputCount), "swirlnet-solver-async: error: inputCount option must be an integer");
+    console.assert(util.isInt(options.outputCount), "swirlnet-solver-async: error: outputCount option must be an integer");
+
+    console.assert(typeof options.maxSimulationDuration === "number", "swirlnet-solver-async: error: maxSimulationDuration option must be a number");
+    console.assert(typeof options.fitnessTarget === "number", "swirlnet-solver-async: error: fitnessTarget option must be a number");
+    console.assert(util.isInt(options.maxGenerations), "swirlnet-solver-async: error: maxGenerations option must be an integer");
+
+    console.assert(options.genomeSettings === undefined || typeof options.genomeSettings === "object", "swirlnet-solver-async: error: genomeSettings option must be an object or unspecified");
+    console.assert(typeof options.doNoveltySearch === "boolean", "swirlnet-solver-async: error: doNoveltySearch option must be a boolean");
+
+    console.assert(typeof options.testFunction === "function", "swirlnet-solver-async: error: testFunction option must be an function");
+
+
+    population = swirlnet.makePopulation(options.inputCount, options.outputCount, options.genomeSettings || {});
+
+    if (options.doNoveltySearch === true) {
         archive = swirlnet.makeArchive(15, 6);
     }
 
@@ -54,12 +70,12 @@ swirlnetSolver = function (inputCount, outputCount, testFunction, maxSimulationD
                 phenotype = swirlnet.genoToPheno(genome);
                 net = swirlnet.makeNet(phenotype);
 
-                resultsPromise = testFunction(net, maxSimulationDuration, false);
+                resultsPromise = options.testFunction(net, options.maxSimulationDuration, false);
 
                 return resultsPromise.then(function (result) {
 
                     fitnesses.push(result.fitness);
-                    if (doNoveltySearch === true) {
+                    if (options.doNoveltySearch === true) {
                         archive.noteBehavior(result.behavior, genome);
                     }
                 });
@@ -74,7 +90,7 @@ swirlnetSolver = function (inputCount, outputCount, testFunction, maxSimulationD
 
             bestFitnessThisGeneration = -1;
 
-            if (doNoveltySearch === true) {
+            if (options.doNoveltySearch === true) {
                 sparsitiesPre = new Date();
                 sparsities = archive.getSparsities();
                 sparsitiesPost = new Date();
@@ -82,7 +98,7 @@ swirlnetSolver = function (inputCount, outputCount, testFunction, maxSimulationD
 
             for (i = 0; i < fitnesses.length; i += 1) {
 
-                if (doNoveltySearch === true) {
+                if (options.doNoveltySearch === true) {
                     population.setFitness(i, sparsities[i]);
                 } else {
                     population.setFitness(i, fitnesses[i]);
@@ -97,13 +113,13 @@ swirlnetSolver = function (inputCount, outputCount, testFunction, maxSimulationD
 
             bestPhenotypeThisGeneration = swirlnet.genoToPheno(genomes[fittestGenomeIndex]);
 
-            if (doNoveltySearch === true) {
+            if (options.doNoveltySearch === true) {
                 archive.archiveAndClear();
 
                 uniqueCount = archive.getArchiveLength();
             }
 
-            if (doNoveltySearch === true) {
+            if (options.doNoveltySearch === true) {
                 console.log("generation: " + (generationNumber + 1) + "  uniques: " + uniqueCount + "  best fitness: " + bestFitnessThisGeneration);
             } else {
                 console.log("generation: " + (generationNumber + 1) + "  best fitness: " + bestFitnessThisGeneration);
@@ -112,12 +128,12 @@ swirlnetSolver = function (inputCount, outputCount, testFunction, maxSimulationD
             console.log(bestPhenotypeThisGeneration);
             console.log();
             console.log("simulation step took " + (simulationPost - simulationPre) / 1000 + " seconds.");
-            if (doNoveltySearch === true) {
+            if (options.doNoveltySearch === true) {
                 console.log("sparsities step took " + (sparsitiesPost - sparsitiesPre) / 1000 + " seconds.");
             }
             console.log();
 
-            if (bestFitnessThisGeneration > fitnessTarget) {
+            if (bestFitnessThisGeneration > options.fitnessTarget) {
 
                 console.log();
                 console.log("winner found in " + (generationNumber + 1) + " generations after " + uniqueCount + " uniques, with fitness: " + bestFitnessThisGeneration);
@@ -133,7 +149,7 @@ swirlnetSolver = function (inputCount, outputCount, testFunction, maxSimulationD
 
             generationNumber += 1;
 
-            if (generationNumber < maxGenerations) {
+            if (generationNumber < options.maxGenerations) {
 
                 population.reproduce();
 
@@ -150,7 +166,7 @@ swirlnetSolver = function (inputCount, outputCount, testFunction, maxSimulationD
         if (!winnerFound) {
 
             console.log();
-            console.log("no winner found in " + maxGenerations + " generations. last generation's best fitness: " + bestFitnessThisGeneration);
+            console.log("no winner found in " + options.maxGenerations + " generations. last generation's best fitness: " + bestFitnessThisGeneration);
             console.log();
             console.log(bestPhenotypeThisGeneration);
             console.log();
