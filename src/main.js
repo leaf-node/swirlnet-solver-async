@@ -15,7 +15,7 @@
 
 /*global Promise */
 
-var swirlnet, swirlnetSolver;
+var swirlnet, util, swirlnetSolver;
 
 swirlnet = require('swirlnet');
 util = require('./util.js');
