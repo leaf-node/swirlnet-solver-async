@@ -33,7 +33,6 @@ swirlnetSolver = function (options) {
     console.assert(util.isInt(options.inputCount), "swirlnet-solver-async: error: inputCount option must be an integer");
     console.assert(util.isInt(options.outputCount), "swirlnet-solver-async: error: outputCount option must be an integer");
 
-    console.assert(typeof options.maxSimulationDuration === "number", "swirlnet-solver-async: error: maxSimulationDuration option must be a number");
     console.assert(typeof options.fitnessTarget === "number", "swirlnet-solver-async: error: fitnessTarget option must be a number");
     console.assert(util.isInt(options.maxGenerations), "swirlnet-solver-async: error: maxGenerations option must be an integer");
 
@@ -41,6 +40,8 @@ swirlnetSolver = function (options) {
     console.assert(typeof options.doNoveltySearch === "boolean", "swirlnet-solver-async: error: doNoveltySearch option must be a boolean");
 
     console.assert(typeof options.testFunction === "function", "swirlnet-solver-async: error: testFunction option must be an function");
+
+    console.assert(typeof options.testFunctionOptions === "object" || options.testFunctionOptions === undefined, "swirlnet-solver-async: error: testFunctionOpbtions option must be an object or undefined.");
 
 
     population = swirlnet.makePopulation(options.inputCount, options.outputCount, options.genomeSettings || {});
@@ -70,7 +71,7 @@ swirlnetSolver = function (options) {
                 phenotype = swirlnet.genoToPheno(genome);
                 net = swirlnet.makeNet(phenotype);
 
-                resultsPromise = options.testFunction(net, options.maxSimulationDuration, false);
+                resultsPromise = options.testFunction(net, options.testFunctionOptions);
 
                 return resultsPromise.then(function (result) {
 
