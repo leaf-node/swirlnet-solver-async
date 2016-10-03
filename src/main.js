@@ -16,7 +16,8 @@
 /*global Promise */
 
 var swirlnet, util, swirlnetSolver,
-    testOptions, sequentialTest;
+    testOptions, sequentialTest,
+    logProgress, testForWinner;
 
 swirlnet = require('swirlnet');
 util = require('./util.js');
@@ -50,7 +51,7 @@ swirlnetSolver = function (options) {
         return sequentialTest(genomes, options, archive).then(function (fitnesses) {
 
             var i, fittestGenomeIndex, sparsities, uniqueCount,
-                sparsitiesPre, sparsitiesPost;
+                sparsitiesPre, sparsitiesPost, isWinnerFound;
 
             simulationPost = new Date();
 
@@ -86,35 +87,23 @@ swirlnetSolver = function (options) {
             }
 
             if (options.doNoveltySearch === true) {
-                console.log("generation: " + (generationNumber + 1) + "  uniques: " + uniqueCount + "  best fitness: " + bestFitnessThisGeneration);
+
+                logProgress(generationNumber, bestFitnessThisGeneration, bestPhenotypeThisGeneration, (simulationPost - simulationPre), uniqueCount, (sparsitiesPost - sparsitiesPre));
+                isWinnerFound = testForWinner(generationNumber, options.fitnessTarget, bestFitnessThisGeneration, bestPhenotypeThisGeneration, uniqueCount);
+
             } else {
-                console.log("generation: " + (generationNumber + 1) + "  best fitness: " + bestFitnessThisGeneration);
+
+                logProgress(generationNumber, bestFitnessThisGeneration, bestPhenotypeThisGeneration, (simulationPost - simulationPre));
+                isWinnerFound = testForWinner(generationNumber, options.fitnessTarget, bestFitnessThisGeneration, bestPhenotypeThisGeneration);
             }
-            console.log();
-            console.log(bestPhenotypeThisGeneration);
-            console.log();
-            console.log("simulation step took " + (simulationPost - simulationPre) / 1000 + " seconds.");
-            if (options.doNoveltySearch === true) {
-                console.log("sparsities step took " + (sparsitiesPost - sparsitiesPre) / 1000 + " seconds.");
-            }
-            console.log();
 
-            if (bestFitnessThisGeneration > options.fitnessTarget) {
-
-                console.log();
-                console.log("winner found in " + (generationNumber + 1) + " generations after " + uniqueCount + " uniques, with fitness: " + bestFitnessThisGeneration);
-                console.log();
-                console.log("winning network:");
-                console.log();
-                console.log(bestPhenotypeThisGeneration);
-                console.log();
-
-                // winner found
+            if (isWinnerFound) {
                 return true;
             }
 
             generationNumber += 1;
 
+            // loop
             if (generationNumber < options.maxGenerations) {
 
                 population.reproduce();
@@ -167,6 +156,7 @@ testOptions = function (options) {
     console.assert(typeof options.testFunctionOptions === "object" || options.testFunctionOptions === undefined, "swirlnet-solver-async: error: testFunctionOpbtions option must be an object or undefined.");
 };
 
+
 sequentialTest = function (genomes, options, archive) {
 
     "use strict";
@@ -199,6 +189,58 @@ sequentialTest = function (genomes, options, archive) {
         return fitnesses;
     });
 };
+
+
+logProgress = function (generationNumber, bestFitnessThisGeneration, bestPhenotypeThisGeneration, simTime, uniqueCount, sparsitiesTime) {
+
+    "use strict";
+
+    if (uniqueCount !== undefined) {
+        console.log("generation: " + (generationNumber + 1) + "  uniques: " + uniqueCount + "  best fitness: " + bestFitnessThisGeneration);
+    } else {
+        console.log("generation: " + (generationNumber + 1) + "  best fitness: " + bestFitnessThisGeneration);
+    }
+
+    console.log();
+    console.log(bestPhenotypeThisGeneration);
+    console.log();
+    console.log("simulation step took " + simTime / 1000 + " seconds.");
+
+    if (uniqueCount !== undefined) {
+        console.log("sparsities step took " + sparsitiesTime / 1000 + " seconds.");
+    }
+
+    console.log();
+};
+
+
+testForWinner = function (generationNumber, fitnessTarget, bestFitnessThisGeneration, bestPhenotypeThisGeneration, uniqueCount) {
+
+    "use strict";
+
+    if (bestFitnessThisGeneration > fitnessTarget) {
+
+        console.log();
+
+        if (uniqueCount !== undefined) {
+            console.log("winner found in " + (generationNumber + 1) + " generations after " + uniqueCount + " uniques, with fitness: " + bestFitnessThisGeneration);
+        } else {
+            console.log("winner found in " + (generationNumber + 1) + " generations, with fitness: " + bestFitnessThisGeneration);
+        }
+
+        console.log();
+        console.log("winning network:");
+        console.log();
+        console.log(bestPhenotypeThisGeneration);
+        console.log();
+
+        // winner found
+        return true;
+    }
+
+    return false;
+};
+
 
 module.exports = swirlnetSolver;
 
