@@ -196,9 +196,9 @@ logProgress = function (generationNumber, bestFitnessThisGeneration, bestPhenoty
     "use strict";
 
     if (uniqueCount !== undefined) {
-        console.log("generation: " + (generationNumber + 1) + "  uniques: " + uniqueCount + "  best fitness: " + bestFitnessThisGeneration);
+        console.log("generation: " + generationNumber + "  uniques: " + uniqueCount + "  best fitness: " + bestFitnessThisGeneration);
     } else {
-        console.log("generation: " + (generationNumber + 1) + "  best fitness: " + bestFitnessThisGeneration);
+        console.log("generation: " + generationNumber + "  best fitness: " + bestFitnessThisGeneration);
     }
 
     console.log();
@@ -223,9 +223,9 @@ testForWinner = function (generationNumber, fitnessTarget, bestFitnessThisGenera
         console.log();
 
         if (uniqueCount !== undefined) {
-            console.log("winner found in " + (generationNumber + 1) + " generations after " + uniqueCount + " uniques, with fitness: " + bestFitnessThisGeneration);
+            console.log("winner found in " + generationNumber + " generations after " + uniqueCount + " uniques, with fitness: " + bestFitnessThisGeneration);
         } else {
-            console.log("winner found in " + (generationNumber + 1) + " generations, with fitness: " + bestFitnessThisGeneration);
+            console.log("winner found in " + generationNumber + " generations, with fitness: " + bestFitnessThisGeneration);
         }
 
         console.log();
