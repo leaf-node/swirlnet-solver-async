@@ -15,7 +15,8 @@
 
 /*global Promise */
 
-var swirlnet, util, swirlnetSolver;
+var swirlnet, util, swirlnetSolver,
+    testOptions, sequentialTest;
 
 swirlnet = require('swirlnet');
 util = require('./util.js');
@@ -28,21 +29,7 @@ swirlnetSolver = function (options) {
     var mainLoop, population, archive, generationNumber,
         bestFitnessThisGeneration, bestPhenotypeThisGeneration;
 
-    console.assert(typeof options === "object", "swirlnet-solver-async: error: options must be an object");
-
-    console.assert(util.isInt(options.inputCount), "swirlnet-solver-async: error: inputCount option must be an integer");
-    console.assert(util.isInt(options.outputCount), "swirlnet-solver-async: error: outputCount option must be an integer");
-
-    console.assert(typeof options.fitnessTarget === "number", "swirlnet-solver-async: error: fitnessTarget option must be a number");
-    console.assert(util.isInt(options.maxGenerations), "swirlnet-solver-async: error: maxGenerations option must be an integer");
-
-    console.assert(options.genomeSettings === undefined || typeof options.genomeSettings === "object", "swirlnet-solver-async: error: genomeSettings option must be an object or unspecified");
-    console.assert(typeof options.doNoveltySearch === "boolean", "swirlnet-solver-async: error: doNoveltySearch option must be a boolean");
-
-    console.assert(typeof options.testFunction === "function", "swirlnet-solver-async: error: testFunction option must be an function");
-
-    console.assert(typeof options.testFunctionOptions === "object" || options.testFunctionOptions === undefined, "swirlnet-solver-async: error: testFunctionOpbtions option must be an object or undefined.");
-
+    testOptions(options);
 
     population = swirlnet.makePopulation(options.inputCount, options.outputCount, options.genomeSettings || {});
 
@@ -54,35 +41,13 @@ swirlnetSolver = function (options) {
 
     mainLoop = function () {
 
-        var genomes, fitnesses, simulationPre, simulationPost;
+        var genomes, simulationPre, simulationPost;
 
         simulationPre = new Date();
 
         genomes = population.getGenomes();
 
-        fitnesses = [];
-
-        return genomes.reduce(function (promiseSequence, genome) {
-
-            return promiseSequence.then(function () {
-
-                var phenotype, net, resultsPromise;
-
-                phenotype = swirlnet.genoToPheno(genome);
-                net = swirlnet.makeNet(phenotype);
-
-                resultsPromise = options.testFunction(net, options.testFunctionOptions);
-
-                return resultsPromise.then(function (result) {
-
-                    fitnesses.push(result.fitness);
-                    if (options.doNoveltySearch === true) {
-                        archive.noteBehavior(result.behavior, genome);
-                    }
-                });
-            });
-
-        }, Promise.resolve()).then(function () {
+        return sequentialTest(genomes, options, archive).then(function (fitnesses) {
 
             var i, fittestGenomeIndex, sparsities, uniqueCount,
                 sparsitiesPre, sparsitiesPost;
@@ -172,6 +137,66 @@ swirlnetSolver = function (options) {
             console.log(bestPhenotypeThisGeneration);
             console.log();
         }
+    });
+};
+
+testOptions = function (options) {
+
+    "use strict";
+
+    console.assert(typeof options === "object", "swirlnet-solver-async: error: options must be an object");
+
+    console.assert(util.isInt(options.inputCount), "swirlnet-solver-async: error: inputCount option must be an integer");
+    console.assert(util.isInt(options.outputCount), "swirlnet-solver-async: error: outputCount option must be an integer");
+
+    console.assert(typeof options.fitnessTarget === "number", "swirlnet-solver-async: error: fitnessTarget option must be a number");
+    console.assert(util.isInt(options.maxGenerations), "swirlnet-solver-async: error: maxGenerations option must be an integer");
+
+    console.assert(options.genomeSettings === undefined || typeof options.genomeSettings === "object", "swirlnet-solver-async: error: genomeSettings option must be an object or unspecified");
+    console.assert(typeof options.doNoveltySearch === "boolean", "swirlnet-solver-async: error: doNoveltySearch option must be a boolean");
+
+    console.assert(typeof options.useWorkers === "boolean", "swirlnet-solver-async: error: useWorkers option must be a boolean");
+
+    if (options.useWorkers) {
+        console.assert(typeof options.worker === "string", "swirlnet-solver-async: error: worker option must be an string");
+        console.assert(util.isInt(options.workerCount) && options.workerCount > 0, "swirlnet-solver-async: error: workerCount option must be a positive integer");
+    } else {
+        console.assert(typeof options.testFunction === "function", "swirlnet-solver-async: error: testFunction option must be an function");
+    }
+
+    console.assert(typeof options.testFunctionOptions === "object" || options.testFunctionOptions === undefined, "swirlnet-solver-async: error: testFunctionOpbtions option must be an object or undefined.");
+};
+
+sequentialTest = function (genomes, options, archive) {
+
+    "use strict";
+
+    var fitnesses;
+
+    fitnesses = [];
+
+    return genomes.reduce(function (promiseSequence, genome) {
+
+        return promiseSequence.then(function () {
+
+            var phenotype, net, resultsPromise;
+
+            phenotype = swirlnet.genoToPheno(genome);
+            net = swirlnet.makeNet(phenotype);
+
+            resultsPromise = options.testFunction(net, options.testFunctionOptions);
+
+            return resultsPromise.then(function (result) {
+
+                fitnesses.push(result.fitness);
+                if (options.doNoveltySearch === true) {
+                    archive.noteBehavior(result.behavior, genome);
+                }
+            });
+        });
+
+    }, Promise.resolve()).then(function () {
+        return fitnesses;
     });
 };
 
