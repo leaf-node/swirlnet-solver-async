@@ -14,13 +14,17 @@
 
 
 /*global Promise */
+/*jslint unparam: true */
 
 var swirlnet, util, swirlnetSolver,
     testOptions, sequentialTest,
-    logProgress, testForWinner;
+    logProgress, testForWinner,
+    createWorkerArray, parallelTest,
+    child_process;
 
 swirlnet = require('swirlnet');
 util = require('./util.js');
+child_process = require('child_process');
 
 // search for network solution using user supplied Promise based test callback
 swirlnetSolver = function (options) {
@@ -28,7 +32,8 @@ swirlnetSolver = function (options) {
     "use strict";
 
     var mainLoop, population, archive, generationNumber,
-        bestFitnessThisGeneration, bestPhenotypeThisGeneration;
+        bestFitnessThisGeneration, bestPhenotypeThisGeneration,
+        workerArray;
 
     testOptions(options);
 
@@ -36,6 +41,10 @@ swirlnetSolver = function (options) {
 
     if (options.doNoveltySearch === true) {
         archive = swirlnet.makeArchive(15, 6);
+    }
+
+    if (options.useWorkers) {
+        workerArray = createWorkerArray(options.workerCount, options.workerPath);
     }
 
     generationNumber = 0;
@@ -48,7 +57,14 @@ swirlnetSolver = function (options) {
 
         genomes = population.getGenomes();
 
-        return sequentialTest(genomes, options, archive).then(function (fitnesses) {
+        return (function () {
+
+            if (options.useWorkers) {
+                return parallelTest(workerArray, genomes, options, archive);
+            }
+            return sequentialTest(genomes, options, archive);
+
+        }()).then(function (fitnesses) {
 
             var i, fittestGenomeIndex, sparsities, uniqueCount,
                 sparsitiesPre, sparsitiesPost, isWinnerFound;
@@ -126,6 +142,13 @@ swirlnetSolver = function (options) {
             console.log(bestPhenotypeThisGeneration);
             console.log();
         }
+
+        if (options.useWorkers) {
+            workerArray.map(function (worker) { worker.disconnect(); });
+        }
+
+        // bool
+        return winnerFound;
     });
 };
 
@@ -147,7 +170,7 @@ testOptions = function (options) {
     console.assert(typeof options.useWorkers === "boolean", "swirlnet-solver-async: error: useWorkers option must be a boolean");
 
     if (options.useWorkers) {
-        console.assert(typeof options.worker === "string", "swirlnet-solver-async: error: worker option must be an string");
+        console.assert(typeof options.workerPath === "string", "swirlnet-solver-async: error: workerPath option must be a string");
         console.assert(util.isInt(options.workerCount) && options.workerCount > 0, "swirlnet-solver-async: error: workerCount option must be a positive integer");
     } else {
         console.assert(typeof options.testFunction === "function", "swirlnet-solver-async: error: testFunction option must be an function");
@@ -188,6 +211,116 @@ sequentialTest = function (genomes, options, archive) {
     }, Promise.resolve()).then(function () {
         return fitnesses;
     });
+};
+
+
+parallelTest = function (workerArray, genomes, options, archive) {
+
+    "use strict";
+
+    var fitnesses, genomeIndexQueue, init, launchInitialTasks,
+        launchNextTask, addListeners, genomeTestRoster;
+
+    init = function () {
+
+        var i;
+
+        fitnesses = [];
+        genomeIndexQueue = [];
+        genomeTestRoster = [];
+
+        for (i = 0; i < genomes.length; i += 1) {
+            genomeIndexQueue.push(i);
+        }
+    };
+
+    launchInitialTasks = function () {
+
+        return workerArray.map(function (worker, workerIndex) {
+            return new Promise(function (resolve, reject) {
+
+                addListeners(workerIndex, resolve, reject);
+
+                launchNextTask(workerIndex, resolve, reject);
+            });
+        }).reduce(function (promise1, promise2) {
+            return promise1.then(function () {
+                return promise2;
+            });
+        }, Promise.resolve()).then(function () {
+            return fitnesses;
+        });
+    };
+
+    addListeners = function (workerIndex, resolve, reject) {
+
+        // result obtained
+        workerArray[workerIndex].on("message", function (message) {
+
+            var genomeIndex;
+
+            genomeIndex = genomeTestRoster[workerIndex];
+
+            fitnesses[genomeIndex] = message.fitness;
+
+            if (options.doNoveltySearch === true) {
+                archive.noteBehavior(message.behavior, genomes[genomeIndex]);
+            }
+
+            launchNextTask(workerIndex, resolve, reject);
+        });
+
+        // worker died
+        workerArray[workerIndex].on("exit", function (code, signal) {
+
+            if (code !== 0) {
+                workerArray.map(function (worker) {
+                    if (worker.connected) {
+                        worker.kill();
+                    }
+                });
+                reject(new Error("worker quit with exit code: " + code + " and signal: " + signal));
+            }
+        });
+    };
+
+    launchNextTask = function (workerIndex, resolve, reject) {
+
+        var genomeIndex, phenotype;
+
+        genomeIndex = genomeIndexQueue.pop();
+
+        genomeTestRoster[workerIndex] = genomeIndex;
+
+        if (genomeIndex !== undefined) {
+
+            phenotype = swirlnet.genoToPheno(genomes[genomeIndex]);
+            workerArray[workerIndex].send({"phenotype": phenotype, "options": options.testFunctionOptions});
+
+        } else {
+            resolve();
+        }
+    };
+
+    init();
+
+    return launchInitialTasks();
+};
+
+
+createWorkerArray = function (workerCount, workerPath) {
+
+    "use strict";
+
+    var i, workerArray;
+
+    workerArray = [];
+
+    for (i = 0; i < workerCount; i += 1) {
+        workerArray.push(child_process.fork(workerPath));
+    }
+
+    return workerArray;
 };
 
 
