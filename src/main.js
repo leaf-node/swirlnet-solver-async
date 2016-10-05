@@ -40,7 +40,7 @@ swirlnetSolver = function (options) {
     population = swirlnet.makePopulation(options.inputCount, options.outputCount, options.genomeSettings || {});
 
     if (options.doNoveltySearch === true) {
-        archive = swirlnet.makeArchive(15, 6);
+        archive = swirlnet.makeArchive(options.noveltySearchOptions);
     }
 
     if (options.useWorkers) {
@@ -166,6 +166,10 @@ testOptions = function (options) {
 
     console.assert(options.genomeSettings === undefined || typeof options.genomeSettings === "object", "swirlnet-solver-async: error: genomeSettings option must be an object or unspecified");
     console.assert(typeof options.doNoveltySearch === "boolean", "swirlnet-solver-async: error: doNoveltySearch option must be a boolean");
+
+    if (options.doNoveltySearch) {
+        console.assert(typeof options.noveltySearchOptions === "object", "swirlnet-solver-async: error: when doing novelty search, noveltySearchOptions option must be a an object.");
+    }
 
     console.assert(typeof options.useWorkers === "boolean", "swirlnet-solver-async: error: useWorkers option must be a boolean");
 
