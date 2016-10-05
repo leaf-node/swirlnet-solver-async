@@ -173,7 +173,7 @@ testOptions = function (options) {
         console.assert(typeof options.workerPath === "string", "swirlnet-solver-async: error: workerPath option must be a string");
         console.assert(util.isInt(options.workerCount) && options.workerCount > 0, "swirlnet-solver-async: error: workerCount option must be a positive integer");
     } else {
-        console.assert(typeof options.testFunction === "function", "swirlnet-solver-async: error: testFunction option must be an function");
+        console.assert(typeof options.testFunction === "function", "swirlnet-solver-async: error: testFunction option must be a function");
     }
 
     console.assert(typeof options.testFunctionOptions === "object" || options.testFunctionOptions === undefined, "swirlnet-solver-async: error: testFunctionOpbtions option must be an object or undefined.");
