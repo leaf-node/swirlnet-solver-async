@@ -20,11 +20,11 @@ var swirlnet, util, swirlnetSolver,
     testOptions, sequentialTest,
     logProgress, testForWinner,
     createWorkerArray, parallelTest,
-    child_process;
+    littleFork;
 
 swirlnet = require('swirlnet');
 util = require('./util.js');
-child_process = require('child_process');
+littleFork = require('little-fork');
 
 // search for network solution using user supplied Promise based test callback
 swirlnetSolver = function (options) {
@@ -219,7 +219,7 @@ parallelTest = function (workerArray, genomes, options, archive) {
     "use strict";
 
     var fitnesses, genomeIndexQueue, init, launchInitialTasks,
-        launchNextTask, addListeners, genomeTestRoster;
+        launchNextTask, setListeners;
 
     init = function () {
 
@@ -227,7 +227,6 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
         fitnesses = [];
         genomeIndexQueue = [];
-        genomeTestRoster = [];
 
         for (i = 0; i < genomes.length; i += 1) {
             genomeIndexQueue.push(i);
@@ -236,30 +235,25 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
     launchInitialTasks = function () {
 
-        return workerArray.map(function (worker, workerIndex) {
+        return workerArray.map(function (worker) {
             return new Promise(function (resolve, reject) {
 
-                addListeners(workerIndex, resolve, reject);
-
-                launchNextTask(workerIndex, resolve, reject);
+                launchNextTask(worker, resolve, reject);
             });
         }).reduce(function (promise1, promise2) {
             return promise1.then(function () {
                 return promise2;
             });
         }, Promise.resolve()).then(function () {
+
             return fitnesses;
         });
     };
 
-    addListeners = function (workerIndex, resolve, reject) {
+    setListeners = function (worker, genomeIndex, resolve, reject) {
 
         // result obtained
-        workerArray[workerIndex].on("message", function (message) {
-
-            var genomeIndex;
-
-            genomeIndex = genomeTestRoster[workerIndex];
+        worker.replaceListener("message", function (message) {
 
             fitnesses[genomeIndex] = message.fitness;
 
@@ -267,35 +261,34 @@ parallelTest = function (workerArray, genomes, options, archive) {
                 archive.noteBehavior(message.behavior, genomes[genomeIndex]);
             }
 
-            launchNextTask(workerIndex, resolve, reject);
+            launchNextTask(worker, resolve, reject);
         });
 
         // worker died
-        workerArray[workerIndex].on("exit", function (code, signal) {
+        worker.replaceListener("exit", function (code, signal) {
 
             if (code !== 0) {
                 workerArray.map(function (worker) {
-                    if (worker.connected) {
-                        worker.kill();
-                    }
+
+                    worker.kill();
                 });
                 reject(new Error("worker quit with exit code: " + code + " and signal: " + signal));
             }
         });
     };
 
-    launchNextTask = function (workerIndex, resolve, reject) {
+    launchNextTask = function (worker, resolve, reject) {
 
         var genomeIndex, phenotype;
 
         genomeIndex = genomeIndexQueue.pop();
 
-        genomeTestRoster[workerIndex] = genomeIndex;
+        setListeners(worker, genomeIndex, resolve, reject);
 
         if (genomeIndex !== undefined) {
 
             phenotype = swirlnet.genoToPheno(genomes[genomeIndex]);
-            workerArray[workerIndex].send({"phenotype": phenotype, "options": options.testFunctionOptions});
+            worker.send({"phenotype": phenotype, "options": options.testFunctionOptions});
 
         } else {
             resolve();
@@ -317,7 +310,8 @@ createWorkerArray = function (workerCount, workerPath) {
     workerArray = [];
 
     for (i = 0; i < workerCount; i += 1) {
-        workerArray.push(child_process.fork(workerPath));
+
+        workerArray.push(littleFork(workerPath));
     }
 
     return workerArray;
