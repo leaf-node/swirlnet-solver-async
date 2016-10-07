@@ -71,7 +71,7 @@ swirlnetSolver = function (options) {
 
             simulationPost = new Date();
 
-            bestFitnessThisGeneration = -1;
+            bestFitnessThisGeneration = null;
 
             if (options.doNoveltySearch === true) {
                 sparsitiesPre = new Date();
@@ -87,7 +87,7 @@ swirlnetSolver = function (options) {
                     population.setFitness(i, fitnesses[i]);
                 }
 
-                if (fitnesses[i] > bestFitnessThisGeneration) {
+                if (bestFitnessThisGeneration === null || fitnesses[i] > bestFitnessThisGeneration) {
 
                     fittestGenomeIndex = i;
                     bestFitnessThisGeneration = fitnesses[fittestGenomeIndex];
