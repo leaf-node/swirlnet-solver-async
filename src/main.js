@@ -349,7 +349,7 @@ testForWinner = function (generationNumber, fitnessTarget, bestFitnessThisGenera
 
     "use strict";
 
-    if (bestFitnessThisGeneration > fitnessTarget) {
+    if (bestFitnessThisGeneration >= fitnessTarget) {
 
         console.log();
 
