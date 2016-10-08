@@ -354,9 +354,9 @@ testForWinner = function (generationNumber, fitnessTarget, bestFitnessThisGenera
         console.log();
 
         if (uniqueCount !== undefined) {
-            console.log("winner found in " + generationNumber + " generations after " + uniqueCount + " uniques, with fitness: " + bestFitnessThisGeneration);
+            console.log("winner found in " + (generationNumber + 1) + " generations after " + uniqueCount + " uniques, with fitness: " + bestFitnessThisGeneration);
         } else {
-            console.log("winner found in " + generationNumber + " generations, with fitness: " + bestFitnessThisGeneration);
+            console.log("winner found in " + (generationNumber + 1) + " generations, with fitness: " + bestFitnessThisGeneration);
         }
 
         console.log();
