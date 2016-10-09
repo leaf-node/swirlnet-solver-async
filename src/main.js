@@ -268,11 +268,13 @@ parallelTest = function (workerArray, genomes, options, archive) {
         worker.replaceListener("exit", function (code, signal) {
 
             if (code !== 0) {
+
+                reject(new Error("swirlnet-solver-async: internal error: worker quit with exit code: " + code + " and signal: " + signal));
+
                 workerArray.map(function (worker) {
 
                     worker.kill();
                 });
-                reject(new Error("worker quit with exit code: " + code + " and signal: " + signal));
             }
         });
     };
