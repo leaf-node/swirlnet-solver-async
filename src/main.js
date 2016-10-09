@@ -256,6 +256,10 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
         taskComplete = false;
 
+        if (!worker.isConnected()) {
+            reject(new Error("swirlnet-solver-async: internal error: worker is not connected."));
+        }
+
         // result obtained
         worker.replaceListener("message", function (message) {
 
