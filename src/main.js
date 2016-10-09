@@ -252,6 +252,10 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
     setListeners = function (worker, genomeIndex, resolve, reject) {
 
+        var taskComplete;
+
+        taskComplete = false;
+
         // result obtained
         worker.replaceListener("message", function (message) {
 
@@ -261,13 +265,14 @@ parallelTest = function (workerArray, genomes, options, archive) {
                 archive.noteBehavior(message.behavior, genomes[genomeIndex]);
             }
 
+            taskComplete = true;
             launchNextTask(worker, resolve, reject);
         });
 
         // worker died
         worker.replaceListener("exit", function (code, signal) {
 
-            if (code !== 0) {
+            if (!taskComplete || code !== 0) {
 
                 reject(new Error("swirlnet-solver-async: internal error: worker quit with exit code: " + code + " and signal: " + signal));
 
