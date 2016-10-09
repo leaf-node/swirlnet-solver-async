@@ -239,16 +239,12 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
     launchInitialTasks = function () {
 
-        return workerArray.map(function (worker) {
+        return Promise.all(workerArray.map(function (worker) {
             return new Promise(function (resolve, reject) {
 
                 launchNextTask(worker, resolve, reject);
             });
-        }).reduce(function (promise1, promise2) {
-            return promise1.then(function () {
-                return promise2;
-            });
-        }, Promise.resolve()).then(function () {
+        })).then(function () {
 
             return fitnesses;
         });
