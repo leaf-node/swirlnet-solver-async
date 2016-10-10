@@ -274,7 +274,7 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
             if (!taskComplete || code !== 0) {
 
-                reject(new Error("swirlnet-solver-async: internal error: worker quit with exit code: " + code + " and signal: " + signal));
+                reject(new Error("swirlnet-solver-async: error: worker quit with exit code: " + code + " and signal: " + signal));
 
                 workerArray.map(function (worker) {
                     worker.kill();
@@ -283,7 +283,7 @@ parallelTest = function (workerArray, genomes, options, archive) {
         });
 
         if (!worker.isConnected()) {
-            reject(new Error("swirlnet-solver-async: internal error: worker is disconnected."));
+            reject(new Error("swirlnet-solver-async: error: worker is disconnected."));
         }
     };
 
