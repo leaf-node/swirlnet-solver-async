@@ -256,10 +256,6 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
         taskComplete = false;
 
-        if (!worker.isConnected()) {
-            reject(new Error("swirlnet-solver-async: internal error: worker is not connected."));
-        }
-
         // result obtained
         worker.replaceListener("message", function (message) {
 
@@ -281,11 +277,14 @@ parallelTest = function (workerArray, genomes, options, archive) {
                 reject(new Error("swirlnet-solver-async: internal error: worker quit with exit code: " + code + " and signal: " + signal));
 
                 workerArray.map(function (worker) {
-
                     worker.kill();
                 });
             }
         });
+
+        if (!worker.isConnected()) {
+            reject(new Error("swirlnet-solver-async: internal error: worker is disconnected."));
+        }
     };
 
     launchNextTask = function (worker, resolve, reject) {
