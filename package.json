@@ -10,7 +10,8 @@
     ],
   "dependencies": {
       "swirlnet": "<=1.x",
-      "little-fork": "1.x"
+      "little-fork": "1.x",
+      "assert": "1.x"
   },
   "author": "Andrew Engelbrecht",
   "license": "Apache-2.0"

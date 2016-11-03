@@ -20,11 +20,12 @@ var swirlnet, util, swirlnetSolver,
     testOptions, sequentialTest,
     logProgress, testForWinner,
     createWorkerArray, parallelTest,
-    littleFork;
+    littleFork, assert;
 
 swirlnet = require('swirlnet');
 util = require('./util.js');
 littleFork = require('little-fork');
+assert = require('assert');
 
 // search for network solution using user supplied Promise based test callback
 swirlnetSolver = function (options) {
@@ -156,31 +157,31 @@ testOptions = function (options) {
 
     "use strict";
 
-    console.assert(typeof options === "object", "swirlnet-solver-async: error: options must be an object");
+    assert(typeof options === "object", "swirlnet-solver-async: error: options must be an object");
 
-    console.assert(util.isInt(options.inputCount), "swirlnet-solver-async: error: inputCount option must be an integer");
-    console.assert(util.isInt(options.outputCount), "swirlnet-solver-async: error: outputCount option must be an integer");
+    assert(util.isInt(options.inputCount), "swirlnet-solver-async: error: inputCount option must be an integer");
+    assert(util.isInt(options.outputCount), "swirlnet-solver-async: error: outputCount option must be an integer");
 
-    console.assert(typeof options.fitnessTarget === "number", "swirlnet-solver-async: error: fitnessTarget option must be a number");
-    console.assert(util.isInt(options.maxGenerations), "swirlnet-solver-async: error: maxGenerations option must be an integer");
+    assert(typeof options.fitnessTarget === "number", "swirlnet-solver-async: error: fitnessTarget option must be a number");
+    assert(util.isInt(options.maxGenerations), "swirlnet-solver-async: error: maxGenerations option must be an integer");
 
-    console.assert(options.genomeSettings === undefined || typeof options.genomeSettings === "object", "swirlnet-solver-async: error: genomeSettings option must be an object or unspecified");
-    console.assert(typeof options.doNoveltySearch === "boolean", "swirlnet-solver-async: error: doNoveltySearch option must be a boolean");
+    assert(options.genomeSettings === undefined || typeof options.genomeSettings === "object", "swirlnet-solver-async: error: genomeSettings option must be an object or unspecified");
+    assert(typeof options.doNoveltySearch === "boolean", "swirlnet-solver-async: error: doNoveltySearch option must be a boolean");
 
     if (options.doNoveltySearch) {
-        console.assert(typeof options.noveltySearchOptions === "object", "swirlnet-solver-async: error: when doing novelty search, noveltySearchOptions option must be a an object.");
+        assert(typeof options.noveltySearchOptions === "object", "swirlnet-solver-async: error: when doing novelty search, noveltySearchOptions option must be a an object.");
     }
 
-    console.assert(typeof options.useWorkers === "boolean", "swirlnet-solver-async: error: useWorkers option must be a boolean");
+    assert(typeof options.useWorkers === "boolean", "swirlnet-solver-async: error: useWorkers option must be a boolean");
 
     if (options.useWorkers) {
-        console.assert(typeof options.workerPath === "string", "swirlnet-solver-async: error: workerPath option must be a string");
-        console.assert(util.isInt(options.workerCount) && options.workerCount > 0, "swirlnet-solver-async: error: workerCount option must be a positive integer");
+        assert(typeof options.workerPath === "string", "swirlnet-solver-async: error: workerPath option must be a string");
+        assert(util.isInt(options.workerCount) && options.workerCount > 0, "swirlnet-solver-async: error: workerCount option must be a positive integer");
     } else {
-        console.assert(typeof options.testFunction === "function", "swirlnet-solver-async: error: testFunction option must be a function");
+        assert(typeof options.testFunction === "function", "swirlnet-solver-async: error: testFunction option must be a function");
     }
 
-    console.assert(typeof options.testFunctionOptions === "object" || options.testFunctionOptions === undefined, "swirlnet-solver-async: error: testFunctionOpbtions option must be an object or undefined.");
+    assert(typeof options.testFunctionOptions === "object" || options.testFunctionOptions === undefined, "swirlnet-solver-async: error: testFunctionOpbtions option must be an object or undefined.");
 };
 
 
