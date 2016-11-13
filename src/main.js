@@ -54,9 +54,9 @@ swirlnetSolver = function (options) {
 
         var genomes, simulationPre, simulationPost;
 
-        simulationPre = new Date();
-
         genomes = population.getGenomes();
+
+        simulationPre = new Date();
 
         return (function () {
 
