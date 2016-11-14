@@ -20,6 +20,7 @@ var swirlnet, util, swirlnetSolver,
     testOptions, sequentialTest,
     logProgress, testForWinner,
     createWorkerArray, parallelTest,
+    killAllWorkers,
     littleFork, assert;
 
 swirlnet = require('swirlnet');
@@ -150,6 +151,14 @@ swirlnetSolver = function (options) {
 
         // bool
         return winnerFound;
+
+    }).catch(function (error) {
+
+        if (options.useWorkers) {
+            killAllWorkers(workerArray);
+        }
+
+        throw error;
     });
 };
 
@@ -253,38 +262,46 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
     setListeners = function (worker, genomeIndex, resolve, reject) {
 
-        var taskComplete;
+        try {
 
-        taskComplete = false;
+            var taskComplete;
 
-        // result obtained
-        worker.replaceListener("message", function (message) {
+            taskComplete = false;
 
-            fitnesses[genomeIndex] = message.fitness;
+            // result obtained
+            worker.replaceListener("message", function (message) {
 
-            if (options.doNoveltySearch === true) {
-                archive.noteBehavior(message.behavior, genomes[genomeIndex]);
+                try {
+
+                    fitnesses[genomeIndex] = message.fitness;
+
+                    if (options.doNoveltySearch === true) {
+                        archive.noteBehavior(message.behavior, genomes[genomeIndex]);
+                    }
+
+                    taskComplete = true;
+                    launchNextTask(worker, resolve, reject);
+
+                } catch (error) {
+                    reject(error);
+                }
+            });
+
+            // worker died
+            worker.replaceListener("exit", function (code, signal) {
+
+                if (!taskComplete || code !== 0) {
+
+                    reject(new Error("swirlnet-solver-async: error: worker quit with exit code: " + code + " and signal: " + signal));
+                }
+            });
+
+            if (!worker.isConnected()) {
+                reject(new Error("swirlnet-solver-async: error: worker is disconnected."));
             }
 
-            taskComplete = true;
-            launchNextTask(worker, resolve, reject);
-        });
-
-        // worker died
-        worker.replaceListener("exit", function (code, signal) {
-
-            if (!taskComplete || code !== 0) {
-
-                reject(new Error("swirlnet-solver-async: error: worker quit with exit code: " + code + " and signal: " + signal));
-
-                workerArray.map(function (worker) {
-                    worker.kill();
-                });
-            }
-        });
-
-        if (!worker.isConnected()) {
-            reject(new Error("swirlnet-solver-async: error: worker is disconnected."));
+        } catch (error) {
+            reject(error);
         }
     };
 
@@ -306,9 +323,7 @@ parallelTest = function (workerArray, genomes, options, archive) {
         }
     };
 
-    init();
-
-    return launchInitialTasks();
+    return Promise.resolve().then(init).then(launchInitialTasks);
 };
 
 
@@ -326,6 +341,16 @@ createWorkerArray = function (workerCount, workerPath) {
     }
 
     return workerArray;
+};
+
+
+killAllWorkers = function (workerArray) {
+
+    "use strict";
+
+    workerArray.map(function (worker) {
+        worker.kill();
+    });
 };
 
 
