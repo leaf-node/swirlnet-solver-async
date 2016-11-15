@@ -11,6 +11,7 @@
   "dependencies": {
       "swirlnet": "<=1.x",
       "little-fork": "1.x",
+      "promise-loop": "1.0.x",
       "assert": "1.x"
   },
   "author": "Andrew Engelbrecht",

@@ -21,11 +21,12 @@ var swirlnet, util, swirlnetSolver,
     logProgress, testForWinner,
     createWorkerArray, parallelTest,
     killAllWorkers,
-    littleFork, assert;
+    promiseLoop, littleFork, assert;
 
 swirlnet = require('swirlnet');
 util = require('./util.js');
 littleFork = require('little-fork');
+promiseLoop = require('promise-loop');
 assert = require('assert');
 
 // search for network solution using user supplied Promise based test callback
@@ -33,7 +34,8 @@ swirlnetSolver = function (options) {
 
     "use strict";
 
-    var mainLoop, population, archive, generationNumber,
+    var population, archive, generationNumber,
+        doNextGeneration, testIfDone,
         bestFitnessThisGeneration, bestPhenotypeThisGeneration,
         workerArray;
 
@@ -51,7 +53,7 @@ swirlnetSolver = function (options) {
 
     generationNumber = 0;
 
-    mainLoop = function () {
+    doNextGeneration = function () {
 
         var genomes, simulationPre, simulationPost;
 
@@ -121,20 +123,27 @@ swirlnetSolver = function (options) {
 
             generationNumber += 1;
 
-            // loop
-            if (generationNumber < options.maxGenerations) {
-
-                population.reproduce();
-
-                return mainLoop();
-            }
+            population.reproduce();
 
             // winner not found
             return false;
         });
     };
 
-    return mainLoop().then(function (winnerFound) {
+    testIfDone = function (winnerFound, generationNumber) {
+
+        if (winnerFound === true) {
+            return true;
+        }
+
+        if (generationNumber >= options.maxGenerations) {
+            return true;
+        }
+
+        return false;
+    };
+
+    return promiseLoop(doNextGeneration, testIfDone, Promise.resolve(false)).then(function (winnerFound) {
 
         if (!winnerFound) {
 
