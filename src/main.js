@@ -324,8 +324,7 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
         if (genomeIndex !== undefined) {
 
-            phenotype = swirlnet.genoToPheno(genomes[genomeIndex]);
-            worker.send({"phenotype": phenotype, "options": options.testFunctionOptions});
+            worker.send({"genome": genomes[genomeIndex], "options": options.testFunctionOptions});
 
         } else {
             resolve();
