@@ -219,10 +219,9 @@ sequentialTest = function (genomes, options, archive) {
 
         return promiseSequence.then(function () {
 
-            var phenotype, net, resultsPromise;
+            var net, resultsPromise;
 
-            phenotype = swirlnet.genoToPheno(genome);
-            net = swirlnet.makeNet(phenotype);
+            net = swirlnet.makeNet(swirlnet.genoToPheno(genome));
 
             resultsPromise = options.testFunction(net, options.testFunctionOptions);
 
@@ -320,7 +319,7 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
     launchNextTask = function (worker, resolve, reject) {
 
-        var genomeIndex, phenotype;
+        var genomeIndex;
 
         genomeIndex = genomeIndexQueue.pop();
 
