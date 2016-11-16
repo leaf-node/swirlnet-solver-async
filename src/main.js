@@ -21,13 +21,14 @@ var swirlnet, util, swirlnetSolver,
     logProgress, testForWinner,
     createWorkerArray, parallelTest,
     killAllWorkers,
-    promiseLoop, littleFork, assert;
+    promiseLoop, littleFork, assert, path;
 
 swirlnet = require('swirlnet');
 util = require('./util.js');
 littleFork = require('little-fork');
 promiseLoop = require('promise-loop');
 assert = require('assert');
+path = require('path');
 
 // search for network solution using user supplied Promise based test callback
 swirlnetSolver = function (options) {
@@ -48,7 +49,7 @@ swirlnetSolver = function (options) {
     }
 
     if (options.useWorkers) {
-        workerArray = createWorkerArray(options.workerCount, options.workerPath);
+        workerArray = createWorkerArray(options.workerCount);
     }
 
     generationNumber = 0;
@@ -193,7 +194,10 @@ testOptions = function (options) {
     assert(typeof options.useWorkers === "boolean", "swirlnet-solver-async: error: useWorkers option must be a boolean");
 
     if (options.useWorkers) {
-        assert(typeof options.workerPath === "string", "swirlnet-solver-async: error: workerPath option must be a string");
+
+        assert(typeof options.testFile === "string", "swirlnet-solver-async: error: testFile option must be a string.");
+        assert(path.isAbsolute(options.testFile), "swirlnet-solver-async: error: testFile option must be an absolute path.");
+
         assert(util.isInt(options.workerCount) && options.workerCount > 0, "swirlnet-solver-async: error: workerCount option must be a positive integer");
     } else {
         assert(typeof options.testFunction === "function", "swirlnet-solver-async: error: testFunction option must be a function");
@@ -324,7 +328,7 @@ parallelTest = function (workerArray, genomes, options, archive) {
 
         if (genomeIndex !== undefined) {
 
-            worker.send({"genome": genomes[genomeIndex], "options": options.testFunctionOptions});
+            worker.send({"testFile": options.testFile, "genome": genomes[genomeIndex], "options": options.testFunctionOptions});
 
         } else {
             resolve();
@@ -335,7 +339,7 @@ parallelTest = function (workerArray, genomes, options, archive) {
 };
 
 
-createWorkerArray = function (workerCount, workerPath) {
+createWorkerArray = function (workerCount) {
 
     "use strict";
 
@@ -345,7 +349,9 @@ createWorkerArray = function (workerCount, workerPath) {
 
     for (i = 0; i < workerCount; i += 1) {
 
-        workerArray.push(littleFork(workerPath));
+        /*jslint nomen: true*/
+        workerArray.push(littleFork(path.join(__dirname, "worker.js")));
+        /*jslint nomen: false*/
     }
 
     return workerArray;
