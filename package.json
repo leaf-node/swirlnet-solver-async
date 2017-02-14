@@ -9,7 +9,7 @@
       "LICENSE"
     ],
   "dependencies": {
-      "swirlnet": "<=1.0x",
+      "swirlnet": "1.0.x",
       "little-fork": "1.0.x",
       "promise-loop": "1.0.x",
       "assert": "1.4.x"
