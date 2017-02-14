@@ -1,6 +1,6 @@
 {
   "name": "swirlnet-solver-async",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A basic framework for evolving networks with swirlnet",
   "main": "src/main.js",
   "files": [
