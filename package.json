@@ -1,6 +1,6 @@
 {
   "name": "swirlnet-solver-async",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A basic framework for evolving networks with swirlnet",
   "url": "https://gitlab.com/sudoman/swirlnet-solver-async/issues",
   "repository": "gitlab:sudoman/swirlnet-solver-async",
@@ -13,7 +13,7 @@
   "dependencies": {
       "swirlnet": "1.0.x",
       "little-fork": "1.0.x",
-      "promise-loop": "1.0.x",
+      "promise-loopie": "1.0.x",
       "assert": "1.4.x"
   },
   "author": "Andrew Engelbrecht",
