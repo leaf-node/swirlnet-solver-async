@@ -1,6 +1,6 @@
 {
   "name": "swirlnet-solver-async",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A basic framework for evolving networks with swirlnet",
   "url": "https://gitlab.com/sudoman/swirlnet-solver-async/issues",
   "repository": "gitlab:sudoman/swirlnet-solver-async",
