@@ -26,7 +26,7 @@ var swirlnet, util, swirlnetSolver,
 swirlnet = require('swirlnet');
 util = require('./util.js');
 littleFork = require('little-fork');
-promiseLoop = require('promise-loop');
+promiseLoop = require('promise-loopie');
 assert = require('assert');
 path = require('path');
 
