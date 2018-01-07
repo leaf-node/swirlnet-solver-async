@@ -1,7 +1,8 @@
 # swirlnet-solver-async
 
 This is a basic asynchronous javascript- and promise-based framework for
-evolving artificial neural networks with the swirlnet library.
+evolving artificial neural networks with the swirlnet library and mulitple CPU
+cores.
 
 ## Documentation
 
