@@ -9,6 +9,11 @@ cores.
 For documentation of this library, see the `examples` directory of this
 repository.
 
+## Demos
+
+* [swirlnet XOR challenge](https://gitlab.com/sudoman/swirlnet/tree/master/test)
+* [inverted pendula](https://gitlab.com/sudoman/swirlnet-demos)
+
 ## License
 
 This software is licensed under the Apache License, Version 2.0
