@@ -2,8 +2,8 @@
   "name": "swirlnet-solver-async",
   "version": "1.0.4",
   "description": "A basic single- and mulit-core framework for evolving networks with swirlnet",
-  "url": "https://gitlab.com/sudoman/swirlnet-solver-async/issues",
-  "repository": "gitlab:sudoman/swirlnet-solver-async",
+  "url": "https://github.com/leaf-node/swirlnet-solver-async/issues",
+  "repository": "github:leaf-node/swirlnet-solver-async",
   "main": "src/main.js",
   "files": [
       "src",

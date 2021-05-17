@@ -11,8 +11,8 @@ repository.
 
 ## Demos
 
-* [swirlnet XOR challenge](https://gitlab.com/sudoman/swirlnet/tree/master/test)
-* [inverted pendula](https://gitlab.com/sudoman/swirlnet-demos)
+* [swirlnet XOR challenge](https://github.com/leaf-node/swirlnet/tree/master/test)
+* [inverted pendula](https://github.com/leaf-node/swirlnet-demos)
 
 ## License
 
