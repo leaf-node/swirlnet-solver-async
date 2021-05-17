@@ -1,6 +1,6 @@
 {
   "name": "swirlnet-solver-async",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A basic single- and mulit-core framework for evolving networks with swirlnet",
   "url": "https://github.com/leaf-node/swirlnet-solver-async/issues",
   "repository": "github:leaf-node/swirlnet-solver-async",
